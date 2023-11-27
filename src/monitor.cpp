@@ -304,6 +304,9 @@ pool_data getPoolData(void){
           if (httpCode == HTTP_CODE_OK) {
               String payload = http.getString();
               // Serial.println(payload);
+              DynamicJsonDocument doc(1024);
+              deserializeJson(doc, payload);
+
               StaticJsonDocument<300> filter;
               filter["bestDifficulty"] = true;
               filter["workersCount"] = true;
@@ -316,15 +319,13 @@ pool_data getPoolData(void){
               const JsonArray& workers = doc["workers"].as<JsonArray>();
               float totalhashs = 0;
               for (const JsonObject& worker : workers) {
-                totalhashs += worker["hashRate"].as<double>();
+                totalhashs += worker["hashRate"].as<float>();
+                totalhashs += worker["hashRate"].as<int>();
                 /* Serial.print(worker["sessionId"].as<String>()+": ");
                 Serial.print(" - "+worker["hashRate"].as<String>()+": ");
                 Serial.println(totalhashs); */
               }
-              char totalhashs_s[16] = {0};
-              suffix_string(totalhashs, totalhashs_s, 16, 0);
-              pData.workersHash = String(totalhashs_s);
-
+              pData.workersHash = String(totalhashs/1000);              
               double temp;
               if (doc.containsKey("bestDifficulty")) {
               temp = doc["bestDifficulty"].as<double>();            
